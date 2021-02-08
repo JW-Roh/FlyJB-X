@@ -4,11 +4,10 @@
 #import "../Headers/FJPattern.h"
 #import "../Headers/LibraryHooks.h"
 #import "../Headers/ObjCHooks.h"
-#import "../Headers/DisableInjector.h"
+#import "../Headers/OptimizeDisableInjector.h"
 #import "../Headers/SysHooks.h"
 #import "../Headers/NoSafeMode.h"
 #import "../Headers/MemHooks.h"
-#import "../Headers/OptimizeHooks.h"
 #import "../Headers/CheckHooks.h"
 #import "../Headers/PatchFinder.h"
 #import "../ImportHooker/ImportHooker.h"
@@ -28,31 +27,12 @@
 -(void)applicationDidFinishLaunching: (id)arg1 {
 	%orig;
 	UIAlertController *alertController = [UIAlertController
-	                                      alertControllerWithTitle:@"공중제비"
-	                                      message:@"FJMemory 파일을 불러올 수 없습니다. 트윅을 재설치하십시오."
+	                                      alertControllerWithTitle:@"FlyJB X"
+	                                      message:@"Couldn't find FJMemory. Please reinstall FlyJB X."
 	                                      preferredStyle:UIAlertControllerStyleAlert
 	                                     ];
 
-	[alertController addAction:[UIAlertAction actionWithTitle:@"확인" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-	                                    [((UIApplication*)self).keyWindow.rootViewController dismissViewControllerAnimated:YES completion:NULL];
-				    }]];
-
-	[((UIApplication*)self).keyWindow.rootViewController presentViewController:alertController animated:YES completion:NULL];
-}
-%end
-%end
-
-%group ReachItIntegrityFail
-%hook SpringBoard
--(void)applicationDidFinishLaunching: (id)arg1 {
-	%orig;
-	UIAlertController *alertController = [UIAlertController
-	                                      alertControllerWithTitle:@"공중제비"
-	                                      message:@"현재 설치된 공중제비 트윅은 신뢰되지 않거나 크랙, 또는 불법 소스로부터 설치된 것으로 판단됩니다.\n제거하시고 아래 소스로부터 설치하시기 바랍니다.\nhttps://repo.xsf1re.kr/"
-	                                      preferredStyle:UIAlertControllerStyleAlert
-	                                     ];
-
-	[alertController addAction:[UIAlertAction actionWithTitle:@"에휴" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+	[alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
 	                                    [((UIApplication*)self).keyWindow.rootViewController dismissViewControllerAnimated:YES completion:NULL];
 				    }]];
 
@@ -93,23 +73,13 @@
 		loadNoSafeMode();
 	}
 
-	if (![[NSFileManager defaultManager] fileExistsAtPath:@"/var/lib/dpkg/info/kr.xsf1re.flyjbx.list"]) {
-		%init(ReachItIntegrityFail);
-		return;
-	}
-
 	if(![[NSFileManager defaultManager] fileExistsAtPath:@"/var/mobile/Library/Preferences/FJMemory"]) {
 		%init(NoFile);
 		return;
 	}
 
 	%init(TossAppProtection);
-	loadDisableInjector();
-
-	NSMutableDictionary *prefs_crashfix = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/kr.xsf1re.flyjb_crashfix.plist"];
-	if(prefs_crashfix && [prefs[@"enabled"] boolValue] && [prefs_crashfix[bundleID] boolValue]) {
-		loadOptimizeHooks();
-	}
+	loadOptimizeDisableInjector();
 
 	if(![bundleID hasPrefix:@"com.apple"] && prefs && [prefs[@"enabled"] boolValue]) {
 		if(([prefs[bundleID] boolValue])
@@ -131,54 +101,22 @@
 			if([bundleID isEqualToString:@"com.kakaobank.channel"]) {
 				NSLog(@"[FlyJB] kakaoBankPatch: %d", kakaoBankPatch());
 			}
-//AhnLab Mobile Security - NH올원페이, 하나카드, NH스마트뱅킹, NH농협카드, 하나카드 원큐페이(앱카드), NH스마트알림, NH올원뱅크
-			NSArray *AMSApps = [NSArray arrayWithObjects:
-																@"com.nonghyup.card.NHAllonePay",
-																@"com.hanaskcard.mobileportal",
-																@"com.nonghyup.newsmartbanking",
-																@"com.nonghyup.nhcard",
-																@"com.hanaskcard.paycli",
-																@"com.nonghyup.nhsmartpush",
-																@"com.nonghyup.allonebank",
-																nil
-																];
-
-			for(NSString* app in AMSApps) {
-				if([bundleID isEqualToString:app]) {
-					loadAhnLabMemHooks();
-					break;
-				}
-			}
+//AhnLab Mobile Security - NH올원페이, 하나카드, NH스마트뱅킹, NH농협카드, 하나카드 원큐페이(앱카드), NH스마트알림, NH올원뱅크, NH콕뱅크...
+			Class AhnLabExist = objc_getClass("AMSLContaminationInspector");
+			if(AhnLabExist)
+				loadAhnLabMemHooks();
 
 //락인컴퍼니 솔루션 LiApp - 차이, 랜덤다이스, 아시아나항공, 코인원, blind...
 			Class LiappExist = objc_getClass("Liapp");
 			if(LiappExist)
 				loadSysHooksForLiApp();
 
-//스틸리언
-			Class stealienExist = objc_getClass("StockNewsdmManager");
-			Class stealienExist2 = objc_getClass("FactoryConfigurati");
-			if((stealienExist || stealienExist2) && ![bundleID isEqualToString:@"com.vivarepublica.cash"])
-				loadStealienObjCHooks();
+//스틸리언...
+			Class stealienExist = objc_getClass("Diresu");
+			Class stealienExist2 = objc_getClass("Kartzela");
 
-//스틸리언2 - 케이뱅크, 보험파트너, 토스, 사이다뱅크(SBI저축은행), 티머니페이, 티머니 비즈페이, 애큐온저축은행
-			NSArray *StealienApps = [NSArray arrayWithObjects:
-																@"com.kbankwith.smartbank",
-																@"im.toss.app.insurp",
-																@"com.vivarepublica.cash",
-																@"com.sbi.saidabank",
-																@"com.tmoney.tmpay",
-																@"com.kscc.t-gift",
-																@"com.kismobile.pay",
-																@"co.kr.acuonsavingsbank.acuonsb",
-																nil
-																];
-
-			for(NSString* app in StealienApps) {
-				if([bundleID isEqualToString:app]) {
-					loadSysHooks4();
-					break;
-				}
+			if(stealienExist && stealienExist2) {
+				loadSysHooks4();
 			}
 
 //배달요기요앱은 한번 탈옥감지하면 설정파일에 colorChecker key에 TRUE 값이 기록됨.
@@ -203,9 +141,8 @@
 			if([bundleID isEqualToString:@"com.kjbank.smart.public.pbanking"])
 				loadKJBankMemHooks();
 
-//따로 제작? 불명 - KB손해보험; AppDefense? - 우체국예금 스마트 뱅킹, 바이오인증공동앱, 모바일증권 나무, 디지털OTP(스마트보안카드)
+//따로 제작? 불명 - AppDefense? - 우체국예금 스마트 뱅킹, 바이오인증공동앱, 모바일증권 나무, 디지털OTP(스마트보안카드)
 			NSArray *UnkApps = [NSArray arrayWithObjects:
-																@"com.kbinsure.kbinsureapp",
 																@"com.epost.psf.sd",
 																@"org.kftc.fido.lnk.lnkApp",
 																@"com.wooriwm.txsmart",
@@ -226,30 +163,56 @@
 				}
 			}
 
+//NSHCApps: 엘포인트, 엘페이, 알밤 매니저
 			NSArray *NSHCApps = [NSArray arrayWithObjects:
-																//@"com.lotte.mybee.lpay",
 																@"com.lottecard.LotteMembers",
 																@"kr.co.nmcs.lpay",
-																@"com.tmoney.tmpay",
-																@"com.kscc.t-gift",
+																@"com.albamapp.OwnerR2",
 																nil
 																];
 			Class NSHCExist = objc_getClass("__ns_d");
 
-//블랙리스트: 빗썸
+//NSHC 블랙리스트: 빗썸, NSHC와 스틸리언 솔루션 둘다 적용된 앱
 			for(NSString* app in NSHCApps) {
-				if([bundleID isEqualToString:app] || (NSHCExist && ![bundleID isEqualToString:@"com.btckorea.bithumb"])) {
+				if([bundleID isEqualToString:app] || (NSHCExist && ![bundleID isEqualToString:@"com.btckorea.bithumb"] && !(stealienExist && stealienExist2 && NSHCExist))) {
 					loadSVC80MemPatch();
 					break;
 				}
 			}
 
+//SVC탐지 + 스틸리언: 티머니 관련 4종, 유안타증권, 키위뱅크(KB저축은행)
+			NSArray *SVCWithStealienApps = [NSArray arrayWithObjects:
+																@"com.tmoney.tmpay",
+																@"com.kscc.t-gift",
+																@"kr.co.ondataxi.passenger",
+																@"kr.co.tmoney.tia",
+																@"com.yuanta.tradarm",
+																@"com.kbsavings.app.KBsavingsMobile",
+																nil
+																];
+
+			for(NSString* app in SVCWithStealienApps) {
+				if([bundleID isEqualToString:app]) {
+					if(isSubstitute || isLibHooker)
+						loadSVC80MemHooks();
+					else {
+						loadSVC80AccessMemHooks();
+						loadSVC80OpenMemHooks();
+					}
+					break;
+				}
+			}
+
+//NSHC - 미니스탁
+			if([bundleID isEqualToString:@"com.truefriend.ministock"])
+				loadMiniStockMemHooks();
+
 //NSHC lxShield - 가디언테일즈
 			if([bundleID isEqualToString:@"com.kakaogames.gdtskr"])
 				loadlxShieldMemHooks();
 
-//NSHC lxShield v2 - 현대카드, 달빛조각사
-			if([bundleID isEqualToString:@"com.hyundaicard.hcappcard"]  || [bundleID isEqualToString:@"com.kakaogames.moonlight"])
+//NSHC lxShield v2 - SKT PASS, 현대카드, 달빛조각사
+			if([bundleID isEqualToString:@"com.sktelecom.tauth"] || [bundleID isEqualToString:@"com.hyundaicard.hcappcard"] || [bundleID isEqualToString:@"com.kakaogames.moonlight"])
 				loadlxShieldMemHooks2();
 
 //NSHC lxShield v3 - LPay
@@ -267,27 +230,15 @@
 
 			for(NSString* app in mVaccineApps) {
 				if([bundleID isEqualToString:app]) {
-					if(DobbyHook) {
-						if(isSubstitute || isLibHooker)
-							loadSVC80MemHooks();
-						else
-							loadSVC80AccessMemHooks();
-					}
-					else {
 						//Disabled DobbyHook...
 						loadSVC80MemPatch();
 					}
 					break;
 				}
-			}
 
-//Arxan - 스마일페이, THE POP, 나만의 냉장고(GS25), GS수퍼마켓, BC카드, 페이코
+//Arxan - 스마일페이, 페이코
 			NSArray *ArxanApps = [NSArray arrayWithObjects:
 																@"com.mysmilepay.app",
-																@"com.gsretail.ios.thepop",
-																@"com.gsretail.gscvs",
-																@"com.gsretail.supermarket",
-																@"com.bccard.iphoneapp",
 																@"com.nhnent.TOASTPAY",
 																nil
 																];
@@ -312,10 +263,23 @@
 		if([bundleID isEqualToString:@"net.kernys.aooni"])
 			loadXignCodeHooks();
 
-//하나카드, NEW하나은행, Arxan 앱은 우회가 좀 까다로운 듯? 하면 안되는 시스템 후킹이 있음
+//nProtect AppGuard - 뱅뱅뱅 상상인디지털뱅크, 애큐온저축은행 모바일뱅킹
+		Class nProtectExist = objc_getClass("AGFramework");
+		if(nProtectExist)
+			loadnProtectMemHooks();
+
+//하나카드, NEW하나은행, THE POP, 나만의 냉장고(GS25), GS수퍼마켓, BC카드, 페이코, 삼성카드(마이홈) 등 Arxan, 신한카드, 롯데카드 일부 앱은 우회가 좀 까다로운 듯? 하면 안되는 시스템 후킹이 있음
 		 NSMutableArray *blacklistApps = [NSMutableArray arrayWithObjects:
 															 @"com.hanaskcard.mobileportal",
 															 @"com.kebhana.hanapush",
+															 @"com.gsretail.ios.thepop",
+															 @"com.gsretail.gscvs",
+															 @"com.gsretail.supermarket",
+															 @"com.bccard.iphoneapp",
+															 @"com.nhnent.TOASTPAY",
+															 @"com.samsungCard.samsungCard",
+															 @"com.shinhancard.SmartShinhan2",
+															 @"com.lottecard.appcard",
 															 nil
 															 ];
 
@@ -332,8 +296,7 @@
 
 			if(enableSysHook) {
 				loadSysHooks2();
-				if(SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"10.0"))
-					loadSysHooks3();
+				loadSysHooks3();
 			}
 
 			loadDlsymSysHooks();

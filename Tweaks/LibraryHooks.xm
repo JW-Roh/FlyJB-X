@@ -1,7 +1,51 @@
 #import "../Headers/LibraryHooks.h"
 #import "../Headers/FJPattern.h"
 
+@interface JobBase : NSObject
++(id)sharedInstance;
++(void)notifyJobFinished:(int)arg1;
+@end
+
 %group LibraryHooks
+// %hook TAUtil
+// +(id)getCarrierCode {
+// 	return @"1";
+// }
+// %end
+
+//불명 - KB손해보험
+%hook JBHelper
+-(BOOL)getJBCResult {
+	return false;
+}
+%end
+
+//Arxan - THE POP
+%hook thepop_Utils
++(void)showConfirmWithTitle:(id)arg1 message:(id)arg2 willDissmiss:(bool)arg3 rightButtnTitle:(id)arg4 onRightButtonClick:(id)arg5 {
+	if([arg2 isEqualToString:@"위험요소(비정상 단말)가 감지되었습니다. 앱을 종료합니다."])
+		return;
+	return %orig;
+}
+%end
+
+//Arxan - GS수퍼마켓
+%hook gsthefresh_Utils
++(void)showConfirmWithTitle:(id)arg1 message:(id)arg2 willDissmiss:(bool)arg3 rightButtnTitle:(id)arg4 onRightButtonClick:(id)arg5 {
+	if([arg2 isEqualToString:@"위험요소(비정상 단말)가 감지되었습니다. 앱을 종료합니다."])
+		return;
+	return %orig;
+}
+%end
+
+//Arxan - 나만의냉장고
+%hook gs25_Utils
++(void)showConfirmWithTitle:(id)arg1 message:(id)arg2 willDissmiss:(bool)arg3 rightButtnTitle:(id)arg4 onRightButtonClick:(id)arg5 {
+	if([arg2 isEqualToString:@"위험요소(비정상 단말)가 감지되었습니다. 앱을 종료합니다."])
+		return;
+	return %orig;
+}
+%end
 
 //NHN Payco (페이코)
 %hook Diresu
@@ -10,14 +54,7 @@
 }
 %end
 
-// %hook NPGC
-// +(void)showQDI {
-// 	NSLog(@"[FlyJB] showQDI call stack:\n%@", [NSThread callStackSymbols]);
-// 	%orig;
-// }
-// %end
-
-//AppGuardToast 뱅뱅뱅 상상인디지털뱅크
+//nProtect AppGuard - 뱅뱅뱅 상상인디지털뱅크, 애큐온저축은행 모바일뱅킹
 %hook AGFramework
 -(void)CGColorSpaceCopyName: (BOOL)arg1 B: (void *)arg2 {
 	;
@@ -102,14 +139,6 @@
 }
 %end
 
-
-//SFAntiPiracy 광주은행
-%hook RootViewController
--(void)showJailNotice: (id)arg1 {
-	;
-}
-%end
-
 //XecureAppShield? SVC
 %hook XASBase64
 +(id)decode: (char *)arg1 {
@@ -117,6 +146,13 @@
 	if([[FJPattern sharedInstance] isPathRestricted:path])
 		return nil;
 	return %orig(arg1);
+}
+%end
+
+//현대해상 - XAS, XFJailbreakDetection
+%hook XASJailbreakDetection
++(BOOL)isJailbroken {
+	return false;
 }
 %end
 
@@ -128,6 +164,29 @@
 
 -(BOOL)mvc {
 	return false;
+}
+%end
+
+//NSHC - 한국투자증권(계좌개설포힘)
+// Get the instance of a class
+// https://www.reddit.com/r/jailbreakdevelopers/comments/2rgjce/get_the_instance_of_a_class/
+static JobBase* sharedInstanceJB = nil;
+%hook JobBase
+-(id)init {
+	id orig = %orig;
+  sharedInstanceJB = orig;
+	return orig;
+}
+
+%new
++(id)sharedInstance{
+  return sharedInstanceJB;
+}
+%end
+
+%hook JobCodeGuard
+-(void)onBegin {
+	[[%c(JobBase) sharedInstance] notifyJobFinished:0];
 }
 %end
 
@@ -191,6 +250,18 @@
 %end
 
 %hook AMSLFairPlayInspector
+-(id)init {
+	return self;
+}
+
++(id)fairPlayInspector {
+	return [[self alloc] init];
+}
+
+-(id)responseForChallenge {
+	return nil;
+}
+
 +(id)unarchive: (id)arg1 {
 	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 	NSData *object_nsdata = [@"AhnLab.bypass" dataUsingEncoding:NSUTF8StringEncoding];
@@ -207,7 +278,8 @@
 }
 
 -(id)fairPlayWithResponseAck: (id)arg1 {
-	return nil;
+	NSData *object_nsdata = [@"AhnLab.bypass" dataUsingEncoding:NSUTF8StringEncoding];
+	return object_nsdata;
 }
 %end
 
@@ -262,7 +334,10 @@ int hook_xigncode() {
 void loadLibraryHooks() {
 	%init(LibraryHooks,
 	      SSGPAY_DetectionController = NSClassFromString(@"SSGPAY.DetectionController"),
-	      samsungCardMyHome = NSClassFromString(@" "));
+	      samsungCardMyHome = NSClassFromString(@" "),
+				gs25_Utils = NSClassFromString(@"gs25.Utils"),
+				gsthefresh_Utils = NSClassFromString(@"gsthefresh.Utils"),
+				thepop_Utils = NSClassFromString(@"thepop.Utils"));
 }
 
 void loadXignCodeHooks() {

@@ -11,29 +11,6 @@
     return sharedInstance;
 }
 
--(BOOL) isCrashAppWithSubstitutor: (NSString*) bundleID
-{
-	//롯데면세점, KB리브, 유플패스, 리브메이트, KB Pay
-	NSArray *ConflictApps = [NSArray arrayWithObjects:
-	                                @"com.lotte.lotteDfs",
-	                                @"com.kbstar.liivbank",
-	                                @"com.lguplus.auth.ios",
-	                                @"com.kbcard.kat.liivmate",
-	                                @"com.kbcard.cxh.appcard",
-                                  //Substitute v2.0+ Crashed Apps
-                                  @"com.kbankwith.smartbank",
-                                  @"kr.kbsec.iplustar",
-                                  @"com.Kiwoom.HeroSMobile",
-                                  @"com.teamblind.blind",
-	                                nil
-	                               ];
-	for (NSString *app in ConflictApps) {
-		if ([bundleID isEqualToString:app])
-			return YES;
-	}
-	return NO;
-}
-
 -(BOOL) isSandBoxPathRestricted: (NSString*) path
 {
 	if ([path hasPrefix:@"/var/containers"]
@@ -178,6 +155,7 @@
                              @"/Library/MobileSubstrate/DynamicLibraries",
                              @"/Library/MobileSubstrate/DynamicLibraries/0Shadow.dylib",
                              @"/Library/MobileSubstrate/DynamicLibraries/ FlyJB.dylib",
+                             @"/Library/MobileSubstrate/DynamicLibraries/ FlyJBX.dylib",
                              @"/Library/MobileSubstrate/DynamicLibraries/!ABypass.dylib",
                              @"/Library/MobileSubstrate/DynamicLibraries/",
                              @"/Library/MobileSubstrate/DynamicLibraries/Activator.dylib",
@@ -445,6 +423,50 @@
                              @"/private/var/mobile/Library/Logs/Cydia",
                              @"/private/var/root/Library/Caches/Clutch",
                              @"/private/var/stash/Applications/Cydia.app/Cydia",
+                             @"/usr/bin",
+                             @"/usr/bin/apt",
+                             @"/pguntether",
+                             @"/usr/bin/ldid",
+                             @"/etc/ssh",
+                             @"/var/mobile/Media/.evasi0n7_installed",
+                             @"/var/mobile/Library/Preferences/me.nepeta.unsub.plist",
+                             @"/var/lib/dpkg/info/me.nepeta.unsub.list",
+                             @"/usr/bin/cycc",
+                             @"/usr/bin/cynject"
+                             @"/Library/Substitute",
+                             @"/etc/rc.d/substitute",
+                             @"/Library/LaunchDaemons/com.ex.substituted.plist",
+                             @"/usr/include/substitute",
+                             @"/jb/lzma",
+                             @"/jb/offsets.plist",
+                             @"/usr/share/jailbreak/injectme.plist",
+                             @"/etc/apt/undecimus/undecimus.list",
+                             @"/var/lib/dpkg/info/mobilesubstrate.md5sums",
+                             @"/jb/jailbreakd.plist",
+                             @"/jb/amfid_payload.dylib",
+                             @"/jb/libjailbreak.dylib",
+                             @"/private/var/cache/apt/",
+                             @"/private/var/Users/",
+                             @"/var/cache/clutch.plist",
+                             @"/etc/clutch_cracked.plist",
+                             @"/var/cache/clutch_cracked.plist",
+                             @"/var/lib/clutch/overdrive.dylib",
+                             @"/var/root/Documents/Cracked/",
+                             @"bin/bash",
+                             @"bin/sh",
+                             @"etc/apt",
+                             @"etc/ssh/sshd_config",
+                             @"private/var/lib/apt",
+                             @"private/var/lib/cydia",
+                             @"private/var/mobile/Library/SBSettings/Themes",
+                             @"private/var/stash",
+                             @"private/var/tmp/cydia.log",
+                             @"usr/libexec/sftp-server",
+                             @"usr/libexec/ssh-keysign",
+                             @"usr/sbin/sshd",
+                             @"var/cache/apt",
+                             @"var/lib/apt",
+                             @"var/lib/cydia",
                              nil
                             ];
 }
@@ -473,7 +495,7 @@
 			return YES;
 		}
 	}
-	// NSLog(@"[FlyJB] file = %@", path);
+  // NSLog(@"[FlyJB] file = %@", path);
 	return NO;
 }
 
